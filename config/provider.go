@@ -23,12 +23,15 @@ import (
 	tjconfig "github.com/crossplane/terrajet/pkg/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/crossplane-contrib/provider-jet-template/config/null"
+	"github.com/crossplane-contrib/provider-jt-cloudflare/config/null"
+	"github.com/crossplane-contrib/provider-jt-cloudflare/config/record"
+	"github.com/crossplane-contrib/provider-jt-cloudflare/config/zone"
+
 )
 
 const (
-	resourcePrefix = "template"
-	modulePath     = "github.com/crossplane-contrib/provider-jet-template"
+	resourcePrefix = "cloudflare"
+	modulePath     = "github.com/crossplane-contrib/provider-jt-cloudflare"
 )
 
 //go:embed schema.json
@@ -44,11 +47,18 @@ func GetProvider() *tjconfig.Provider {
 	}
 
 	pc := tjconfig.NewProviderWithSchema([]byte(providerSchema), resourcePrefix, modulePath,
-		tjconfig.WithDefaultResourceFn(defaultResourceFn))
+		tjconfig.WithDefaultResourceFn(defaultResourceFn),
+		tjconfig.WithIncludeList([]string{
+			"cloudflare_record$",
+			"cloudflare_zone$",
+		}))
+
 
 	for _, configure := range []func(provider *tjconfig.Provider){
 		// add custom config functions
 		null.Configure,
+		zone.Configure,
+		record.Configure,
 	} {
 		configure(pc)
 	}
